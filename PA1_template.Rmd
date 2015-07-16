@@ -7,6 +7,7 @@ output:
 
 
 ## Loading and preprocessing the data
+
 Since repository itself provide zip file, we will not download it from Internet.
 If you don't have [data file](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) for some reason, you can download it.
 
@@ -25,20 +26,20 @@ data$date <- as.Date(data$date, format="%Y-%m-%d")
 ```
 
 Last step: since I'm russian, lets set locale to english to not fear you with cyrillic
-```{r}
-Sys.setlocale("LC_ALL","English")
+```{r, echo=FALSE}
+Sys.setlocale("LC_ALL", "en_US.UTF-8")
 ```
 
 Ok, for now dataset is ready for manipulations.
 
 ## What is mean total number of steps taken per day?
-For calculatinf this we summarize steps done within same date and then calculate mean value.
+For calculating this we summarize steps done within same date and then calculate mean value.
 
 ```{r}
 steps_per_day <- aggregate(steps ~ date, data=data, FUN=sum)
 ```
-Here is total steps per day frequence diagram.
-```{r, echo= FALSE}
+Here is total steps per day frequency diagram.
+```{r}
 hist(steps_per_day$steps, xlab = 'steps per day', main = "total steps per day frequency", breaks=20)
 ```
 
@@ -69,6 +70,14 @@ So the pattern looks like this:
 * then steady decrease
 
 In general, looks like most steps are taken approximately at 850th-900th minute.
+Lets check it:
+
+```{r}
+max_steps_index <- which.max(steps_per_interval$steps)
+steps_per_interval$steps[max_steps_index]
+steps_per_interval$interval[max_steps_index]
+```
+So, maximal steps count(206) achived at 835th interval
 
 ## Imputing missing values
 
@@ -82,7 +91,7 @@ print(missing)
 print(percentage)
 ```
 So, 13% of values is missing. Quite big value, lets emulate them, using median for this time interval across all days
-(credantisal for this method goes to [stackoverflow auther](https://stackoverflow.com/questions/9322773/how-to-replace-na-with-mean-by-subset-in-r-impute-with-plyr))
+(credential for this method goes to [stackoverflow auther](https://stackoverflow.com/questions/9322773/how-to-replace-na-with-mean-by-subset-in-r-impute-with-plyr))
 
 ```{r}
 library(plyr)
@@ -100,12 +109,11 @@ hist(steps_per_day$steps, xlab = 'steps per day', main = "total steps per day fr
 ```
 
 So, while mean and median are left same (probably because NAs replaced with means), total average a bit different.
-Our 'fix' moved total probability toward more euiality, lowering most probable scenario and increasing less probable.
-(Err, sorry, english wasn't my favorite classes in school.)
+Our 'fix' moved total probability toward more equality, lowering most probable scenario and increasing less probable.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-To answer last questin, first  add new column to our dataset, containing weekday name:
+To answer last question, first  add new column to our dataset, containing weekday name:
 ```{r}
 data2$wd <- weekdays(data2$date, abbreviate = T)
 data2$weekend <-  factor(data2$wd %in% c("Sun", "Sat"), levels=c(FALSE, TRUE), labels=c("weekday", "weekend"))

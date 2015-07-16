@@ -2,6 +2,7 @@
 
 
 ## Loading and preprocessing the data
+
 Since repository itself provide zip file, we will not download it from Internet.
 If you don't have [data file](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip) for some reason, you can download it.
 
@@ -43,24 +44,25 @@ data$date <- as.Date(data$date, format="%Y-%m-%d")
 
 Last step: since I'm russian, lets set locale to english to not fear you with cyrillic
 
-```r
-Sys.setlocale("LC_ALL","English")
 ```
-
-```
-## [1] "LC_COLLATE=English_United States.1252;LC_CTYPE=English_United States.1252;LC_MONETARY=English_United States.1252;LC_NUMERIC=C;LC_TIME=English_United States.1252"
+## [1] "LC_CTYPE=en_US.UTF-8;LC_NUMERIC=C;LC_TIME=en_US.UTF-8;LC_COLLATE=en_US.UTF-8;LC_MONETARY=en_US.UTF-8;LC_MESSAGES=ru_RU.UTF-8;LC_PAPER=uk_UA.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=ru_RU.UTF-8;LC_IDENTIFICATION=C"
 ```
 
 Ok, for now dataset is ready for manipulations.
 
 ## What is mean total number of steps taken per day?
-For calculatinf this we summarize steps done within same date and then calculate mean value.
+For calculating this we summarize steps done within same date and then calculate mean value.
 
 
 ```r
 steps_per_day <- aggregate(steps ~ date, data=data, FUN=sum)
 ```
-Here is total steps per day frequence diagram.
+Here is total steps per day frequency diagram.
+
+```r
+hist(steps_per_day$steps, xlab = 'steps per day', main = "total steps per day frequency", breaks=20)
+```
+
 ![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
 
 Now we're ready to calculate mean and median values:
@@ -106,6 +108,26 @@ So the pattern looks like this:
 * then steady decrease
 
 In general, looks like most steps are taken approximately at 850th-900th minute.
+Lets check it:
+
+
+```r
+max_steps_index <- which.max(steps_per_interval$steps)
+steps_per_interval$steps[max_steps_index]
+```
+
+```
+## [1] 206.1698
+```
+
+```r
+steps_per_interval$interval[max_steps_index]
+```
+
+```
+## [1] 835
+```
+So, maximal steps count(206) achived at 835th interval
 
 ## Imputing missing values
 
@@ -131,7 +153,7 @@ print(percentage)
 ## [1] 13.11475
 ```
 So, 13% of values is missing. Quite big value, lets emulate them, using median for this time interval across all days
-(credantisal for this method goes to [stackoverflow auther](https://stackoverflow.com/questions/9322773/how-to-replace-na-with-mean-by-subset-in-r-impute-with-plyr))
+(credential for this method goes to [stackoverflow auther](https://stackoverflow.com/questions/9322773/how-to-replace-na-with-mean-by-subset-in-r-impute-with-plyr))
 
 
 ```r
@@ -174,15 +196,14 @@ median(steps_per_day$steps)
 hist(steps_per_day$steps, xlab = 'steps per day', main = "total steps per day frequency", breaks=20)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
 
 So, while mean and median are left same (probably because NAs replaced with means), total average a bit different.
-Our 'fix' moved total probability toward more euiality, lowering most probable scenario and increasing less probable.
-(Err, sorry, english wasn't my favorite classes in school.)
+Our 'fix' moved total probability toward more equality, lowering most probable scenario and increasing less probable.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-To answer last questin, first  add new column to our dataset, containing weekday name:
+To answer last question, first  add new column to our dataset, containing weekday name:
 
 ```r
 data2$wd <- weekdays(data2$date, abbreviate = T)
@@ -208,4 +229,4 @@ steps_per_interval <- aggregate(steps ~ interval + weekend, data=data2, FUN=mean
 qplot(interval, steps, data=steps_per_interval, facets = weekend ~ ., col=weekend, geom = c("point", "path"))
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png) 
